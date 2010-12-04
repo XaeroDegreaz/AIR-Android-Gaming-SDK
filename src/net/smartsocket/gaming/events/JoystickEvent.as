@@ -45,6 +45,7 @@ package net.smartsocket.gaming.events {
 			this._distanceAbsolute = Point.distance( new Point(0,0), new Point(_distanceX, _distanceY) );
 			
 			debugString = "Event: "+type+", Degrees: "+degrees+", DistanceAbsolute: "+distanceAbsolute+", DistanceX: "+distanceX+", DistanceY: "+distanceY;
+			
 		}
 		
 		/**

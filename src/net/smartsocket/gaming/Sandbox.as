@@ -31,6 +31,7 @@ package net.smartsocket.gaming {
 			
 			Joystick(this["left_mc"]).interactiveObject = test;
 			Joystick(this["right_mc"]).interactiveObject = test;
+			Joystick(this["right_mc"]).joystickMovementType = Joystick.OMNIDIRECTIONAL;
 			
 			test.addEventListener(JoystickEvent.JOYSTICK_MOVE, onMove);
 			test.addEventListener(JoystickEvent.JOYSTICK_RELEASE, onRelease);

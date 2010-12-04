@@ -1,11 +1,11 @@
 package net.smartsocket.gaming.ui {
-	import net.smartsocket.gaming.events.*;
-	
 	import flash.display.*;
 	import flash.events.*;
 	import flash.geom.*;
 	import flash.net.*;
 	import flash.ui.*;
+	
+	import net.smartsocket.gaming.events.*;
 	
 	[Event(name="move",type="events.JoystickEvent")];
 	[Event(name="tap",type="events.JoystickEvent")];
@@ -32,8 +32,17 @@ package net.smartsocket.gaming.ui {
 		
 		public var interactiveObject:InteractiveObject;
 		
+		public static const VERTICAL:String = "vertical";
+		public static const HORIZONTAL:String = "horizontal";
+		public static const OMNIDIRECTIONAL:String = "omnidirectional";
+		
+		public var joystickMovementType:String = OMNIDIRECTIONAL;
+		
 		public function Joystick() {
 			super();
+			
+			
+			
 			//# Set the multi-touch mode.
 			Multitouch.inputMode = MultitouchInputMode.TOUCH_POINT;			
 			
@@ -84,11 +93,19 @@ package net.smartsocket.gaming.ui {
 			_buttonHead.addEventListener(TouchEvent.TOUCH_BEGIN, onTouchBegin);
 			stage.addEventListener(TouchEvent.TOUCH_END, onTouchEnd);
 			stage.addEventListener(TouchEvent.TOUCH_MOVE, onTouchMove);
+			
+			_buttonHead.addEventListener(MouseEvent.MOUSE_DOWN, onTouchBegin);
 		}		
 		
-		private function onTouchBegin(e:TouchEvent):void {
+		private function onTouchBegin(e:Event):void {
 			//# Assign a touchevent id to this joystick
-			touchID = e.touchPointID;
+			try {
+				touchID = e.touchPointID;
+			}catch(er:Error){
+				stage.addEventListener(MouseEvent.MOUSE_UP, onTouchEnd);
+				stage.addEventListener(MouseEvent.MOUSE_MOVE, onTouchMove);
+			}
+			
 			setJoystickValues(e);
 			_buttonHead.alpha = buttonHeadActiveOpacity;
 			buttonStick.alpha = 1;
@@ -100,11 +117,15 @@ package net.smartsocket.gaming.ui {
 			}
 		}
 		
-		private function onTouchMove(e:TouchEvent):void {
+		private function onTouchMove(e:Event):void {
 			//# Check to see if the touch event is for this joystick
-			if(e.touchPointID != touchID) {
-				return;
+			try {
+				if(e.touchPointID != touchID) {
+					return;
+				}
+			}catch(er:Error){				
 			}
+			
 			
 			//# Setup all of the position values for the joystick
 			setJoystickValues(e);
@@ -112,34 +133,40 @@ package net.smartsocket.gaming.ui {
 			//# Rotate the buttonStick accordingly
 			buttonStick.rotation = _degrees;
 			
-			//# Render the buttonHead movement on the x axis
-			//# First we check to see if it's within acceptable bounds.
-			if(xDist > buttonStick.width) {
-				//# The touch position is not within legal bounds of the buttonBase.
-				//# We do some simple math to position the buttonHead accordingly				
-				if(point.x < 0) {
-					_buttonHead.x = (buttonStick.width * (-1));
+			//# Ensure we are allowing horizontal movements;
+			if(this.joystickMovementType == Joystick.HORIZONTAL || this.joystickMovementType == Joystick.OMNIDIRECTIONAL) {
+				//# Render the buttonHead movement on the x axis
+				//# First we check to see if it's within acceptable bounds.
+				if(xDist > buttonStick.width) {
+					//# The touch position is not within legal bounds of the buttonBase.
+					//# We do some simple math to position the buttonHead accordingly				
+					if(point.x < 0) {
+						_buttonHead.x = (buttonStick.width * (-1));
+					}else {
+						_buttonHead.x = buttonStick.width;
+					}					
 				}else {
-					_buttonHead.x = buttonStick.width;
-				}					
-			}else {
-				//# If the buttonHead is within legal bounds, just position the buttonHead to the point of touch contact.
-				_buttonHead.x = point.x;
+					//# If the buttonHead is within legal bounds, just position the buttonHead to the point of touch contact.
+					_buttonHead.x = point.x;
+				}
 			}
 			
-			//# Render the buttonHead movement on the y axis
-			//# First we check to see if it's within acceptable bounds.
-			if(yDist > buttonStick.height) {
-				//# The touch position is not within legal bounds of the buttonBase.
-				//# We do some simple math to position the buttonHead accordingly	
-				if(point.y < 0) {
-					_buttonHead.y = (buttonStick.height * (-1));
+			//# Ensure we are allowing vertical movements;
+			if(this.joystickMovementType == Joystick.VERTICAL || this.joystickMovementType == Joystick.OMNIDIRECTIONAL) {
+				//# Render the buttonHead movement on the y axis
+				//# First we check to see if it's within acceptable bounds.
+				if(yDist > buttonStick.height) {
+					//# The touch position is not within legal bounds of the buttonBase.
+					//# We do some simple math to position the buttonHead accordingly	
+					if(point.y < 0) {
+						_buttonHead.y = (buttonStick.height * (-1));
+					}else {
+						_buttonHead.y = buttonStick.height;
+					}					
 				}else {
-					_buttonHead.y = buttonStick.height;
-				}					
-			}else {
-				//# If the buttonHead is within legal bounds, just position the buttonHead to the point of touch contact.
-				_buttonHead.y = point.y;
+					//# If the buttonHead is within legal bounds, just position the buttonHead to the point of touch contact.
+					_buttonHead.y = point.y;
+				}
 			}
 			
 			try {
@@ -150,10 +177,13 @@ package net.smartsocket.gaming.ui {
 			
 		}
 		
-		private function onTouchEnd(e:TouchEvent):void {
+		private function onTouchEnd(e:Event):void {
 			//# Check to see if the touch event is for this joystick
-			if(e.touchPointID != touchID) {
-				return;
+			try {
+				if(e.touchPointID != touchID) {
+					return;
+				}
+			}catch(er:Error){				
 			}
 			
 			//# Reset the buttonHead to dead center
@@ -164,6 +194,9 @@ package net.smartsocket.gaming.ui {
 			
 			//# Remove the touch id for this joystick.
 			touchID = -1;
+			
+			stage.removeEventListener(MouseEvent.MOUSE_UP, onTouchEnd);
+			stage.removeEventListener(MouseEvent.MOUSE_MOVE, onTouchMove);
 			
 			setJoystickValues(e);
 			
@@ -176,7 +209,7 @@ package net.smartsocket.gaming.ui {
 			
 		}
 		
-		private function setJoystickValues(e:TouchEvent):void {
+		private function setJoystickValues(e:Event):void {
 			//# Get local coordinates from the touch event on the stage.
 			point = globalToLocal( new Point(e.stageX, e.stageY) );
 			
