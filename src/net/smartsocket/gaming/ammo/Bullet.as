@@ -7,7 +7,7 @@ package net.smartsocket.gaming.ammo {
 	
 	public class Bullet extends MovieClip {
 		
-		var speed:Number = 5;
+		var speed:Number = 3;
 		var angle:Number;
 		var timer:Timer = new Timer(1000);
 		
@@ -17,6 +17,7 @@ package net.smartsocket.gaming.ammo {
 			this.addEventListener(Event.ENTER_FRAME, onEnterFrame);
 			this.addEventListener(Event.ADDED_TO_STAGE, onAddedToStage);
 			timer.addEventListener(TimerEvent.TIMER, onTimer);
+			this.cacheAsBitmap = true;
 		}
 
 		private function onTimer(event:TimerEvent):void

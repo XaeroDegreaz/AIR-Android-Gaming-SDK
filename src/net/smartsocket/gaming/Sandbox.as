@@ -1,6 +1,4 @@
 package net.smartsocket.gaming {
-	import net.smartsocket.gaming.events.JoystickEvent;
-	
 	import flash.display.*;
 	import flash.display.MovieClip;
 	import flash.events.*;
@@ -9,41 +7,69 @@ package net.smartsocket.gaming {
 	import flash.ui.*;
 	import flash.utils.Timer;
 	
-	import net.smartsocket.gaming.ui.Joystick;
 	import net.smartsocket.gaming.ammo.*;
-	
-	
+	import net.smartsocket.gaming.controlers.GenericControler;
+	import net.smartsocket.gaming.events.JoystickEvent;
+	import net.smartsocket.gaming.ui.Joystick;
+	import net.smartsocket.gaming.ui.JoystickControlledObject;
 	
 	public class Sandbox extends MovieClip {
-		var test:MovieClip;
+		
 		
 		var left_je:JoystickEvent;
 		var right_je:JoystickEvent;
+		
+		public var leftJoystick:Joystick;
+		public var rightJoystick:Joystick;
 		
 		public var shootTimer:Timer = new Timer(250);
 		public var shooting:Boolean = false;
 		public var moving:Boolean = false;
 		
+		public var test:JoystickControlledObject;
+		public var movementController:JoystickControlledObject;
+		
 		public function Sandbox() {
 			super();
-			test = this["test_mc"];
-			test.feet_mc.stop();
 			
-			Joystick(this["left_mc"]).interactiveObject = test;
-			Joystick(this["right_mc"]).interactiveObject = test;
-			Joystick(this["right_mc"]).joystickMovementType = Joystick.OMNIDIRECTIONAL;
+			movementController = new JoystickControlledObject(
+				map_mc.bg_mc, left_mc, new GenericControler(map_mc.bg_mc), true
+			);
 			
-			test.addEventListener(JoystickEvent.JOYSTICK_MOVE, onMove);
-			test.addEventListener(JoystickEvent.JOYSTICK_RELEASE, onRelease);
+			test = new JoystickControlledObject(
+				test_mc, right_mc, new GenericControler(test_mc)
+			);
+			
+			movementController.setMoveListeners( [ movementController.movementGeneric, test.rotateGeneric, animateStart ]);
+			movementController.setReleaseListeners( [ animateStop ]);
+			
+			test.setMoveListeners( [ test.rotateGeneric, startShootTimer ] );
+			test.setReleaseListeners( [ stopShootTimer ] );			
+			
 			shootTimer.addEventListener(TimerEvent.TIMER, shoot);
 		}
-
+		
+		private function animateStart(event:JoystickEvent = null):void {
+			test.interactiveObject.feet_mc.play();
+		}
+		
+		private function animateStop(event:JoystickEvent = null):void {
+			test.interactiveObject.feet_mc.stop();
+		}
+		
+		private function startShootTimer(event:JoystickEvent):void {
+			shootTimer.start();
+		}
+		private function stopShootTimer(event:JoystickEvent):void {
+			shootTimer.stop();
+		}
+		
 		private function shoot(event:TimerEvent):void {
 			
-			var b:Bullet = new Bullet(test.rotation);
+			var b:Bullet = new Bullet(test.interactiveObject.rotation);
 			
-			var p:Point = new Point(test.gun_mc.x, test.gun_mc.y);
-			var ltg:Point = test.localToGlobal(p);
+			var p:Point = new Point(test.interactiveObject.gun_mc.x, test.interactiveObject.gun_mc.y);
+			var ltg:Point = test.interactiveObject.localToGlobal(p);
 			
 			b.x = ltg.x;
 			b.y = ltg.y;
@@ -55,12 +81,12 @@ package net.smartsocket.gaming {
 			
 			if(event.joystick.name == "left_mc") {
 				moving = false;
-				test.removeEventListener(Event.ENTER_FRAME, movePlayer);
-				test.feet_mc.stop();
+				movementController.interactiveObject.removeEventListener(Event.ENTER_FRAME, scrollMap);
+				test.interactiveObject.feet_mc.stop();
 			}else if(event.joystick.name == "right_mc") {
 				
 				if(moving) {
-					test.rotation = left_je.degrees;
+					test.interactiveObject.rotation = left_je.degrees;
 				}
 				
 				shooting = false;
@@ -75,13 +101,13 @@ package net.smartsocket.gaming {
 			if(event.joystick.name == "left_mc") {
 				left_je = event;
 				moving = true;
-				test.feet_mc.play();
+				test.interactiveObject.feet_mc.play();
 				
 				if(!shooting) {
-					test.rotation = event.degrees;
+					test.interactiveObject.rotation = event.degrees;
 				}
 			
-				test.addEventListener(Event.ENTER_FRAME, movePlayer);
+				movementController.interactiveObject.addEventListener(Event.ENTER_FRAME, scrollMap);
 			}else if(event.joystick.name == "right_mc") {
 				
 				//# Only start shooting if not already shooting
@@ -90,25 +116,22 @@ package net.smartsocket.gaming {
 				}
 				
 				shooting = true;
-				test.rotation = event.degrees;
+				test.interactiveObject.rotation = event.degrees;
 				
 			}
 		}
 
-		private function movePlayer(event:Event):void	{
+		private function scrollMap(event:Event):void	{
 			var angle:Number;
 			if(!shooting) {
-				angle = test.rotation;
+				angle = test.interactiveObject.rotation;
 			}else {
 				angle = left_je.degrees;
 			}
 			
 			var speed:Number = 1;
-			var speedX:Number = Math.sin( angle * (Math.PI / 180) ) * 2;
-			var speedY:Number = Math.cos( angle * (Math.PI / 180) ) * 2 * -1;
 			
-			map_mc.bg_mc.x -= speedX * speed;
-			map_mc.bg_mc.y -= speedY * speed;			
+			movementController.moveInteractiveObject(angle, speed);		
 		}
 		
 	}

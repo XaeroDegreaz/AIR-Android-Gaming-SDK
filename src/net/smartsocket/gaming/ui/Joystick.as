@@ -30,7 +30,7 @@ package net.smartsocket.gaming.ui {
 		private var buttonHeadActiveOpacity:Number = 1;
 		private var buttonHeadInactiveOpacity:Number = .7;
 		
-		public var interactiveObject:InteractiveObject;
+		public var joystickControlledObject:JoystickControlledObject;
 		
 		public static const VERTICAL:String = "vertical";
 		public static const HORIZONTAL:String = "horizontal";
@@ -111,7 +111,7 @@ package net.smartsocket.gaming.ui {
 			buttonStick.alpha = 1;
 			
 			try {
-				interactiveObject.dispatchEvent( new JoystickEvent(JoystickEvent.JOYSTICK_TOUCH, this) );
+				joystickControlledObject.dispatchEvent( new JoystickEvent(JoystickEvent.JOYSTICK_TOUCH, this) );
 			}catch(er:Error) {
 				trace("There doesn't seem to be an InteractiveObject associated with this Joystick object ("+this.name+")");
 			}
@@ -170,7 +170,7 @@ package net.smartsocket.gaming.ui {
 			}
 			
 			try {
-				interactiveObject.dispatchEvent( new JoystickEvent(JoystickEvent.JOYSTICK_MOVE, this) );
+				joystickControlledObject.dispatchEvent( new JoystickEvent(JoystickEvent.JOYSTICK_MOVE, this) );
 			}catch(er:Error) {
 				trace("There doesn't seem to be an InteractiveObject associated with this Joystick object ("+this.name+")");
 			}
@@ -201,7 +201,7 @@ package net.smartsocket.gaming.ui {
 			setJoystickValues(e);
 			
 			try {
-				interactiveObject.dispatchEvent( new JoystickEvent(JoystickEvent.JOYSTICK_RELEASE, this) );
+				joystickControlledObject.dispatchEvent( new JoystickEvent(JoystickEvent.JOYSTICK_RELEASE, this) );
 			}catch(er:Error) {
 				trace("There doesn't seem to be an InteractiveObject associated with this Joystick object ("+this.name+")");
 			}
